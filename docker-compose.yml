@@ -1,0 +1,15 @@
+services:
+  tpot2misp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: tpot2misp
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: no
+    env_file:
+      - .env
+    environment:
+      - TZ=America/Sao_Paulo
+    command: ["python", "main.py"]

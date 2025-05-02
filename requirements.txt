@@ -1,0 +1,22 @@
+# T-Pot to MISP Integration Requirements
+# Core Dependencies
+pymisp
+python-dotenv
+requests
+elasticsearch
+aiohttp
+
+# HPFEEDS (para modo realtime)
+hpfeeds
+asyncio
+
+# Logging e Métricas
+python-json-logger
+prometheus-client
+
+# Utilities
+typing-extensions
+cryptography
+
+# Development/Testing Utilities (Optional)
+scapy # Needed for attack_simulator_scapy.py

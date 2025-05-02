@@ -1,0 +1,40 @@
+# Ambientes virtuais
+venv/
+env/
+ENV/
+
+# Caches e bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Cobertura de testes
+.coverage
+htmlcov/
+test-report.html
+test-results.xml
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Arquivos de ambiente
+.env
+
+# IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+#Testes
+tests/*
+
+#Gerais
+referencia/
