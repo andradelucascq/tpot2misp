@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Docker-Ready-brightgreen.svg" alt="Docker">
 </p>
 
-Integration between the T-Pot honeypot platform and the MISP (Malware Information Sharing Platform) threat intelligence sharing system.
+Scalable integration between the T-Pot honeypot platform and the Malware Information Sharing Platform (MISP), designed to support organizations at varying levels of threat‑intelligence maturity. 
 
 ## 📋 Index
 

@@ -7,9 +7,9 @@
   <img src="https://img.shields.io/badge/Status-In_Development-yellow.svg" alt="Status">
 </p>
 
-A robust solution for integration between the T-Pot honeypot platform and the MISP threat intelligence sharing system.
+Scalable integration between the T-Pot honeypot platform and the Malware Information Sharing Platform (MISP), designed to support organizations at varying levels of threat‑intelligence maturity.
 
-> **Note:** This project was developed to address a real integration need, but also as a practical study on MISP API communication, Elasticsearch parsing and queries, and using the PyMISP library.
+> **Note:** This project was developed to address a real integration need.
 
 ## 📋 Index
 1. [Overview](#overview)
