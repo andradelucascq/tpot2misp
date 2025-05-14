@@ -1,50 +1,52 @@
 # T-Pot to MISP Integration
 
+[![pt-BR](https://img.shields.io/badge/lang-pt--BR-blue.svg)](README.pt-BR.md)
+
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python Version">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Docker-Ready-brightgreen.svg" alt="Docker">
 </p>
 
-Integração entre a plataforma de honeypots T-Pot e o sistema de compartilhamento de inteligência de ameaças MISP (Malware Information Sharing Platform).
+Integration between the T-Pot honeypot platform and the MISP (Malware Information Sharing Platform) threat intelligence sharing system.
 
-## 📋 Índice
+## 📋 Index
 
-- [Visão Geral](#-visão-geral)
-- [Recursos Principais](#-recursos-principais)
-- [Arquitetura Simplificada](#️-arquitetura-simplificada)
-- [Requisitos](#-requisitos)
-- [Instalação](#-instalação)
-  - [Método Docker (Recomendado)](#método-docker-recomendado)
-  - [Método Tradicional](#método-tradicional)
-- [Configuração](#️-configuração)
-- [Como Usar](#-como-usar)
-- [Monitoramento e Validação](#-monitoramento-e-validação)
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Simplified Architecture](#️-simplified-architecture)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+  - [Docker Method (Recommended)](#docker-method-recommended)
+  - [Traditional Method](#traditional-method)
+- [Configuration](#️-configuration)
+- [How to Use](#-how-to-use)
+- [Monitoring and Validation](#-monitoring-and-validation)
 - [Troubleshooting](#-troubleshooting)
-- [Documentação Técnica Detalhada](#-documentação-técnica-detalhada)
-- [Licença](#-licença)
+- [Technical Documentation](#-technical-documentation)
+- [License](#-license)
 
-## 🔍 Visão Geral
+## 🔍 Overview
 
-Esta aplicação automatiza a coleta de dados de ataques de honeypots T-Pot, os enriquece (opcionalmente) e os envia para uma instância MISP, criando eventos estruturados para análise e compartilhamento de inteligência de ameaças.
+This application automates the collection of attack data from T-Pot honeypots, enriches it (optionally), and sends it to a MISP instance, creating structured events for threat intelligence analysis and sharing.
 
-**Modos de Operação:**
-- **Batch:** Coleta dados periodicamente do Elasticsearch do T-Pot.
-- **Real-time:** Coleta dados em tempo real via HPFEEDS.
+**Operation Modes:**
+- **Batch:** Collects data periodically from T-Pot's Elasticsearch.
+- **Real-time:** Collects data in real-time via HPFEEDS.
 
-## ✨ Recursos Principais
+## ✨ Key Features
 
-- **Coleta Flexível:** Suporte aos modos Batch (Elasticsearch) e Real-time (HPFEEDS).
-- **Agrupamento Inteligente:** Cria um evento MISP diário por tipo de honeypot, evitando duplicatas.
-- **Enriquecimento Opcional:** Integração com VirusTotal, AbuseIPDB e GreyNoise (com cache).
-- **Revisão Facilitada:** Eventos criados como não publicados por padrão (publicação automática configurável).
-- **Monitoramento:** Métricas Prometheus opcionais e logs estruturados.
-- **Relatório de Validação:** Geração automática de relatórios (TXT/JSON) para facilitar a validação dos dados enviados ao MISP.
-- **Resiliência:** Tratamento robusto de erros.
+- **Flexible Collection:** Support for Batch (Elasticsearch) and Real-time (HPFEEDS) modes.
+- **Intelligent Grouping:** Creates a daily MISP event per honeypot type, avoiding duplicates.
+- **Optional Enrichment:** Integration with VirusTotal, AbuseIPDB, and GreyNoise (with caching).
+- **Easy Review:** Events created as unpublished by default (automatic publication configurable).
+- **Monitoring:** Optional Prometheus metrics and structured logs.
+- **Validation Reports:** Automatic generation of reports (TXT/JSON) to facilitate validation of data sent to MISP.
+- **Resilience:** Robust error handling.
 
-## 🏗️ Arquitetura Simplificada
+## 🏗️ Simplified Architecture
 
-O sistema possui coletores (Elasticsearch, HPFEEDS), processadores (Enriquecimento, MISP) e utilitários (Logging, Métricas, Validação, etc.), orquestrados pelo `main.py`.
+The system has collectors (Elasticsearch, HPFEEDS), processors (Enrichment, MISP), and utilities (Logging, Metrics, Validation, etc.), orchestrated by `main.py`.
 
 ```mermaid
 ---
@@ -87,90 +89,90 @@ flowchart LR
     classDef mispProcessor fill:#ffe0b2,stroke:#d84315,stroke-width:1px,color:#000
 ```
 
-*Para uma visão detalhada da arquitetura e estrutura de arquivos, consulte a [Documentação Técnica](docs/project.md#arquitetura).*
+*For a detailed view of the architecture and file structure, see the [Technical Documentation](docs/project.md#architecture).*
 
-## 📋 Requisitos
+## 📋 Requirements
 
 - Python 3.8+
-- T-Pot instalado e configurado (com Elasticsearch ou HPFEEDS habilitado)
-- Instância MISP acessível com chave de API
-- (Opcional) Chaves de API para serviços de enriquecimento
-- (Opcional) Docker e Docker Compose
+- T-Pot installed and configured (with Elasticsearch or HPFEEDS enabled)
+- Accessible MISP instance with API key
+- (Optional) API keys for enrichment services
+- (Optional) Docker and Docker Compose
 
-## 🚀 Instalação
+## 🚀 Installation
 
-### Método Docker (Recomendado)
+### Docker Method (Recommended)
 
-1.  Clone o repositório: `git clone https://github.com/andradelucascq/tpot2misp.git && cd tpot2misp`
-2.  Copie e edite o arquivo `.env`: `cp .env.example .env && nano .env`
-3.  Execute: `chmod +x scripts/start-tpot2misp.sh && ./scripts/start-tpot2misp.sh`
+1.  Clone the repository: `git clone https://github.com/andradelucascq/tpot2misp.git && cd tpot2misp`
+2.  Copy and edit the `.env` file: `cp .env.example .env && nano .env`
+3.  Run: `chmod +x scripts/start-tpot2misp.sh && ./scripts/start-tpot2misp.sh`
 
-**Comandos úteis:**
+**Useful commands:**
 - Logs: `docker-compose logs -f`
-- Parar: `docker-compose down`
-- Reiniciar: `docker-compose restart`
+- Stop: `docker-compose down`
+- Restart: `docker-compose restart`
 - Rebuild: `docker-compose build && docker-compose up -d`
 
-### Método Tradicional
+### Traditional Method
 
-1.  Clone o repositório e entre no diretório.
-2.  Crie um ambiente virtual: `python -m venv venv && source venv/bin/activate` (ou `venv\Scripts\activate` no Windows)
-3.  Instale dependências: `pip install -r requirements.txt`
-4.  Configure o `.env`: `cp .env.example .env && nano .env`
+1.  Clone the repository and enter the directory.
+2.  Create a virtual environment: `python -m venv venv && source venv/bin/activate` (or `venv\Scripts\activate` on Windows)
+3.  Install dependencies: `pip install -r requirements.txt`
+4.  Configure `.env`: `cp .env.example .env && nano .env`
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-A configuração principal é feita via arquivo `.env`. Copie `.env.example` para `.env` e ajuste as variáveis:
+The main configuration is done via the `.env` file. Copy `.env.example` to `.env` and adjust the variables:
 
-- **`COLLECTION_MODE`**: `batch` ou `realtime`.
-- **Configurações MISP**: `MISP_URL`, `MISP_KEY`, `MISP_VERIFY_SSL`, `AUTO_PUBLISH`, `PUBLISH_DELAY`.
-- **Configurações Batch (Elasticsearch)**: `ELASTICSEARCH_URL`, `ELASTICSEARCH_USER`, `ELASTICSEARCH_PASSWORD`, `TPOT_HONEYPOTS`, `LOOKBACK_DAYS`.
-- **Configurações Realtime (HPFEEDS)**: `HPFEEDS_HOST`, `HPFEEDS_PORT`, `HPFEEDS_IDENT`, `HPFEEDS_SECRET`, `HPFEEDS_CHANNELS`.
-- **Configurações de Enriquecimento**: `ENRICHMENT_ENABLED`, `CACHE_DURATION`, chaves de API (`VIRUSTOTAL_API_KEY`, etc.).
-- **Configurações de Log**: `LOG_LEVEL`, `LOG_FILE_ENABLED`, `LOG_FILE_PATH`, `LOG_FORMAT`.
-- **Relatório de Validação**: `VALIDATION_REPORT_ENABLED`, `VALIDATION_REPORT_DIR`, `VALIDATION_REPORT_FORMAT`.
-- **Métricas Prometheus**: `PROMETHEUS_ENABLED`, `PROMETHEUS_PORT`.
+- **`COLLECTION_MODE`**: `batch` or `realtime`.
+- **MISP Settings**: `MISP_URL`, `MISP_KEY`, `MISP_VERIFY_SSL`, `AUTO_PUBLISH`, `PUBLISH_DELAY`.
+- **Batch Settings (Elasticsearch)**: `ELASTICSEARCH_URL`, `ELASTICSEARCH_USER`, `ELASTICSEARCH_PASSWORD`, `TPOT_HONEYPOTS`, `LOOKBACK_DAYS`.
+- **Realtime Settings (HPFEEDS)**: `HPFEEDS_HOST`, `HPFEEDS_PORT`, `HPFEEDS_IDENT`, `HPFEEDS_SECRET`, `HPFEEDS_CHANNELS`.
+- **Enrichment Settings**: `ENRICHMENT_ENABLED`, `CACHE_DURATION`, API keys (`VIRUSTOTAL_API_KEY`, etc.).
+- **Log Settings**: `LOG_LEVEL`, `LOG_FILE_ENABLED`, `LOG_FILE_PATH`, `LOG_FORMAT`.
+- **Validation Report**: `VALIDATION_REPORT_ENABLED`, `VALIDATION_REPORT_DIR`, `VALIDATION_REPORT_FORMAT`.
+- **Prometheus Metrics**: `PROMETHEUS_ENABLED`, `PROMETHEUS_PORT`.
 
-*Para detalhes sobre cada variável de configuração, consulte a [Documentação Técnica](docs/project.md#configuração).*
+*For details on each configuration variable, see the [Technical Documentation](docs/project.md#configuration).*
 
-## 📝 Como Usar
+## 📝 How to Use
 
-Após a instalação e configuração:
+After installation and configuration:
 
-- **Modo Batch (Execução Única ou Periódica):**
-  - Se `BATCH_INTERVAL_HOURS` > 0 no `.env`, ele rodará periodicamente.
-  - Se `BATCH_INTERVAL_HOURS` = 0 ou não definido, rodará uma vez e sairá.
-  - Execute: `python main.py` (ou via Docker).
-  - Para agendamento (se não usar `BATCH_INTERVAL_HOURS`), use `cron` ou Agendador de Tarefas do Windows. Exemplo cron: `0 * * * * cd /path/to/tpot2misp && ./venv/bin/python main.py`
+- **Batch Mode (Single or Periodic Execution):**
+  - If `BATCH_INTERVAL_HOURS` > 0 in `.env`, it will run periodically.
+  - If `BATCH_INTERVAL_HOURS` = 0 or not defined, it will run once and exit.
+  - Run: `python main.py` (or via Docker).
+  - For scheduling (if not using `BATCH_INTERVAL_HOURS`), use `cron` or Windows Task Scheduler. Cron example: `0 * * * * cd /path/to/tpot2misp && ./venv/bin/python main.py`
 
-- **Modo Real-time:**
-  - Execute: `python main.py` (ou via Docker).
-  - Use um gerenciador de processos (systemd, supervisor) para execução contínua em produção.
+- **Real-time Mode:**
+  - Run: `python main.py` (or via Docker).
+  - Use a process manager (systemd, supervisor) for continuous execution in production.
 
-## 📊 Monitoramento e Validação
+## 📊 Monitoring and Validation
 
-- **Logs:** Verifique o console ou o arquivo configurado em `LOG_FILE_PATH`.
-- **Relatório de Validação:** Arquivos TXT/JSON gerados no diretório `VALIDATION_REPORT_DIR` após execuções em modo batch. Útil para analistas verificarem os dados enviados.
-- **Métricas Prometheus:** Acesse `http://<host>:<PROMETHEUS_PORT>/metrics` se habilitado.
+- **Logs:** Check the console or the file configured in `LOG_FILE_PATH`.
+- **Validation Reports:** TXT/JSON files generated in the `VALIDATION_REPORT_DIR` directory after batch mode executions. Useful for analysts to verify the data sent.
+- **Prometheus Metrics:** Access `http://<host>:<PROMETHEUS_PORT>/metrics` if enabled.
 
-*Para detalhes sobre as métricas e o formato dos logs/relatórios, consulte a [Documentação Técnica](docs/project.md#monitoramento-e-diagnóstico).*
+*For details about metrics and log/report formats, see the [Technical Documentation](docs/project.md#monitoring-and-diagnostics).*
 
 ## 🚑 Troubleshooting
 
-- **Erro `media_type_header_exception` (Elasticsearch):** Geralmente causado pelo proxy Nginx do T-Pot. O cliente customizado neste projeto (`utils/elasticsearch_client.py`) já lida com isso. Verifique suas credenciais e URL (`https://<tpot-ip>:64297/es/` - a barra final é importante).
-- **Erro 401 (Elasticsearch/MISP):** Verifique as credenciais (`ELASTICSEARCH_USER`/`PASSWORD` ou `MISP_KEY`) no `.env`.
-- **Sem eventos coletados:** Verifique a configuração `TPOT_HONEYPOTS`, `LOOKBACK_DAYS` (batch) ou `HPFEEDS_CHANNELS` (realtime). Certifique-se que o T-Pot está gerando eventos.
-- **Use os scripts de teste:**
+- **`media_type_header_exception` Error (Elasticsearch):** Usually caused by T-Pot's Nginx proxy. The custom client in this project (`utils/elasticsearch_client.py`) already handles this. Verify your credentials and URL (`https://<tpot-ip>:64297/es/` - the trailing slash is important).
+- **401 Error (Elasticsearch/MISP):** Check the credentials (`ELASTICSEARCH_USER`/`PASSWORD` or `MISP_KEY`) in the `.env` file.
+- **No events collected:** Check the `TPOT_HONEYPOTS`, `LOOKBACK_DAYS` (batch) or `HPFEEDS_CHANNELS` (realtime) configuration. Make sure T-Pot is generating events.
+- **Use the test scripts:**
   - `python scripts/test_elasticsearch_connection.py`
   - `python scripts/test_misp_connection.py`
 
-## 📚 Documentação Técnica Detalhada
+## 📚 Technical Documentation
 
-Para informações aprofundadas sobre a arquitetura, fluxo de processamento, detalhes dos componentes, guias de extensão e mais, consulte o documento:
+For in-depth information about the architecture, processing flow, component details, extension guides, and more, see the document:
 
 ➡️ **[`docs/project.md`](docs/project.md)**
 
-## 📜 Licença
+## 📜 License
 
-Este projeto está licenciado sob a Licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
 

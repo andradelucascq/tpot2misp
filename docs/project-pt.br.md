@@ -1,29 +1,29 @@
 # T-Pot to MISP Integration
 
-[![pt-BR](https://img.shields.io/badge/lang-pt--BR-blue.svg)](project-pt.br.md)
+[![en-US](https://img.shields.io/badge/lang-en--US-blue.svg)](project.md)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Documentation-Technical-blue.svg" alt="Technical Documentation">
-  <img src="https://img.shields.io/badge/Status-In_Development-yellow.svg" alt="Status">
+  <img src="https://img.shields.io/badge/Documentação-Técnica-blue.svg" alt="Documentação Técnica">
+  <img src="https://img.shields.io/badge/Status-Em_Desenvolvimento-yellow.svg" alt="Status">
 </p>
 
-A robust solution for integration between the T-Pot honeypot platform and the MISP threat intelligence sharing system.
+Uma solução robusta e escalável para integração entre a plataforma de honeypots T‑Pot e o Malware Information Sharing Platform (MISP), projetada para suportar organizações em diferentes níveis de maturidade em inteligência de ameaças.
 
-> **Note:** This project was developed to address a real integration need, but also as a practical study on MISP API communication, Elasticsearch parsing and queries, and using the PyMISP library.
+> **Nota:** Este projeto foi desenvolvido para atender a uma necessidade real de integração.
 
-## 📋 Index
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Operation Modes](#operation-modes)
-4. [Main Components](#main-components)
-5. [Processing Flow](#processing-flow)
-6. [Indicator Enrichment](#indicator-enrichment)
-7. [Correlation and Event Creation](#correlation-and-event-creation)
-8. [Configuration](#configuration)
-9. [Use Cases](#use-cases)
-10. [Monitoring and Diagnostics](#monitoring-and-diagnostics)
-11. [Development and Extension](#development-and-extension)
-12. [Frequently Asked Questions](#frequently-asked-questions)
+## 📋 Índice
+1. [Visão Geral](#visão-geral)
+2. [Arquitetura](#arquitetura)
+3. [Modos de Operação](#modos-de-operação)
+4. [Componentes Principais](#componentes-principais)
+5. [Fluxo de Processamento](#fluxo-de-processamento)
+6. [Enriquecimento de Indicadores](#enriquecimento-de-indicadores)
+7. [Correlação e Criação de Eventos](#correlação-e-criação-de-eventos)
+8. [Configuração](#configuração)
+9. [Casos de Uso](#casos-de-uso)
+10. [Monitoramento e Diagnóstico](#monitoramento-e-diagnóstico)
+11. [Desenvolvimento e Extensão](#desenvolvimento-e-extensão)
+12. [Perguntas Frequentes](#perguntas-frequentes)
 
 ---
 
@@ -62,93 +62,45 @@ Este projeto foi desenvolvido não apenas como uma solução prática para integ
 
 ## 🏗️ Arquitetura
 
-O projeto segue uma arquitetura modular com clara separação de responsabilidades:
-
 ```mermaid
-graph TD
-    subgraph Fontes Externas
-        TI[Fontes de Inteligência<br/>(VirusTotal, AbuseIPDB, GreyNoise)]
-    end
-
-    subgraph Aplicação TPot2MISP
-        subgraph Coletores [collectors/]
-            EC(ElasticCollector)
-            HC(HPFeedsCollector)
-        end
-
-        subgraph Processadores [processors/]
-            EP(EnrichmentProcessor)
-            MP(MISPProcessor)
-        end
-
-        subgraph Utilidades [utils/]
-            ES(elasticsearch_client.py)
-            LOG(logging.py)
-            MET(metrics.py)
-            ERR(error_handling.py)
-            VAL(validators.py)
-        end
-
-        subgraph Scripts [scripts/]
-            AS(attack_simulator_scapy.py)
-            START(start-tpot2misp.sh)
-            TESTE(test_elasticsearch_connection.py)
-            TESTM(test_misp_connection.py)
-        end
-
-        subgraph Configuração [config/]
-            CONF(settings.py)
-        end
-
-        MAIN(main.py)
-    end
-
-    subgraph Sistemas Externos
-        TPOT[(T-Pot Platform)]
-        MISP[(MISP Instance)]
-    end
-
-    TPOT -- Eventos --> EC
-    TPOT -- Eventos --> HC
-
-    EC -- Dados Coletados --> MAIN
-    HC -- Dados Coletados --> MAIN
-
-    MAIN -- Dados para Processar --> EP
-    MAIN -- Dados para Processar --> MP
-
-    EP -- Consulta --> TI
-    EP -- Resultados Enriquecidos --> MP
-
-    MP -- Cria/Atualiza Evento --> MISP
-
-    MAIN -- Usa --> LOG
-    MAIN -- Usa --> MET
-    MAIN -- Usa --> ERR
-    MAIN -- Usa --> VAL
-    MAIN -- Usa --> CONF
-    MAIN -- Usa --> ES
-
-    EC -- Usa --> LOG
-    HC -- Usa --> LOG
-    EP -- Usa --> LOG
-    MP -- Usa --> LOG
-    EC -- Usa --> ES
-
-    EC -- Usa --> ERR
-    HC -- Usa --> ERR
-    EP -- Usa --> ERR
-    MP -- Usa --> ERR
-
-    EC -- Usa --> MET
-    HC -- Usa --> MET
-    EP -- Usa --> MET
-    MP -- Usa --> MET
-    
-    TESTE -- Testa Conexão --> TPOT
-    TESTM -- Testa Conexão --> MISP
-    AS -- Simula Ataques --> TPOT
-    START -- Inicia --> MAIN
+---
+config:
+  look: handDrawn
+  theme: redux
+  layout: fixed
+---
+flowchart LR
+ subgraph Collectors["Collectors"]
+        Elastic["Elastic Collector"]
+        HPFeeds["HPFeeds Collector"]
+  end
+ subgraph Processors["Processors"]
+        Enrich["Enrichment"]
+        MISPProc["MISP Processor"]
+  end
+ subgraph TPOT2MISP["TPOT2MISP Application"]
+        Collectors
+        MainProc["Main Processor"]
+        Processors
+  end
+    TPOT(("T-POT/Elastic")) --> Elastic & HPFeeds
+    Elastic --> MainProc
+    HPFeeds --> MainProc
+    MainProc --> Enrich
+    Enrich --> MISPProc
+    MISPProc --> MISPInstance[("MISP Instance")]
+     Elastic:::collector
+     HPFeeds:::collector
+     Enrich:::enrichment
+     MISPProc:::mispProcessor
+     MainProc:::main
+     TPOT:::external
+     MISPInstance:::external
+    classDef external fill:#f8e8ff,stroke:#8a56ac,stroke-width:1px,color:#000
+    classDef collector fill:#e0f7fa,stroke:#00796b,stroke-width:1px,color:#000
+    classDef main fill:#c8e6c9,stroke:#388e3c,stroke-width:1px,color:#000
+    classDef enrichment fill:#e3f2fd,stroke:#1565c0,stroke-width:1px,color:#000
+    classDef mispProcessor fill:#ffe0b2,stroke:#d84315,stroke-width:1px,color:#000
 ```
 
 ### Estrutura do Projeto
@@ -182,6 +134,7 @@ tpot2misp/
 ├── docker-compose.yml        # Configuração do Docker Compose
 ├── .env                      # Configuração de variáveis de ambiente
 └── main.py                   # Ponto de entrada da aplicação
+└── readme.md                   # Readme
 ```
 
 ### Princípios de Design
