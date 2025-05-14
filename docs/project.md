@@ -27,182 +27,136 @@ Scalable integration between the T-Pot honeypot platform and the Malware Informa
 
 ---
 
-## 🔍 Visão Geral
+## 🔍 Overview
 
-### Motivação
+### Motivation
 
-Honeypots capturam tentativas de comprometimento e geram grandes volumes de dados sobre potenciais ameaças. O processo tradicional de análise destes dados é manual:
+Honeypots capture compromise attempts and generate large volumes of data about potential threats. The traditional process of analyzing this data is manual:
 
-1. Extrair logs dos honeypots
-2. Analisar indicadores suspeitos (IPs, URLs, etc.)
-3. Enriquecer manualmente com informações de fontes externas
-4. Criar eventos no MISP
-5. Publicar para compartilhamento com a comunidade
+1. Extract logs from honeypots
+2. Analyze suspicious indicators (IPs, URLs, etc.)
+3. Manually enrich with information from external sources
+4. Create events in MISP
+5. Publish for sharing with the community
 
-Nosso projeto automatiza esta cadeia, permitindo que analistas foquem na validação e análise de ameaças mais complexas e também possibilita a implementação de inteligencia cibernética para diferentes tipos de maturidade.
+Our project automates this chain, allowing analysts to focus on validating and analyzing more complex threats and also enables the implementation of cyber intelligence for different maturity levels.
 
-### Benefícios
+### Benefits
 
-- **Economia de tempo**: Automatiza tarefas repetitivas de enriquecimento e criação de eventos
-- **Consistência**: Garante que todos os eventos seguem o mesmo padrão de formatação
-- **Velocidade**: Reduz o tempo entre detecção e compartilhamento
-- **Flexibilidade**: Adapta-se a diferentes configurações e fluxos de trabalho
-- **Qualidade**: Enriquece automaticamente indicadores com múltiplas fontes de inteligência
+- **Time savings**: Automates repetitive tasks of enrichment and event creation
+- **Consistency**: Ensures all events follow the same formatting standard
+- **Speed**: Reduces the time between detection and sharing
+- **Flexibility**: Adapts to different configurations and workflows
+- **Quality**: Automatically enriches indicators with multiple intelligence sources
 
-### Propósito Educacional
+### Educational Purpose
 
-Este projeto foi desenvolvido não apenas como uma solução prática para integração T-Pot/MISP, mas também como um estudo aprofundado de:
+This project was developed not only as a practical solution for T-Pot/MISP integration but also as an in-depth study of:
 
-- **Comunicação com API do MISP**: Explorando as possibilidades e limitações da API de inteligência de ameaças
-- **Parsing e consultas via Elasticsearch**: Aprendendo técnicas eficientes para extrair dados relevantes
-- **Implementação da biblioteca PyMISP**: Compreendendo o uso prático da biblioteca oficial para automação de tarefas no MISP
-- **Arquitetura modular Python**: Aplicando princípios de design de software para criar código manutenível e extensível
+- **Communication with the MISP API**: Exploring the possibilities and limitations of the threat intelligence API
+- **Parsing and querying via Elasticsearch**: Learning efficient techniques for extracting relevant data
+- **Implementation of the PyMISP library**: Understanding the practical use of the official library for automating tasks in MISP
+- **Modular Python architecture**: Applying software design principles to create maintainable and extensible code
 
 ---
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-O projeto segue uma arquitetura modular com clara separação de responsabilidades:
+The project follows a modular architecture with a clear separation of responsibilities:
 
 ```mermaid
-graph TD
-    subgraph Fontes Externas
-        TI[Fontes de Inteligência<br/>(VirusTotal, AbuseIPDB, GreyNoise)]
-    end
-
-    subgraph Aplicação TPot2MISP
-        subgraph Coletores [collectors/]
-            EC(ElasticCollector)
-            HC(HPFeedsCollector)
-        end
-
-        subgraph Processadores [processors/]
-            EP(EnrichmentProcessor)
-            MP(MISPProcessor)
-        end
-
-        subgraph Utilidades [utils/]
-            ES(elasticsearch_client.py)
-            LOG(logging.py)
-            MET(metrics.py)
-            ERR(error_handling.py)
-            VAL(validators.py)
-        end
-
-        subgraph Scripts [scripts/]
-            AS(attack_simulator_scapy.py)
-            START(start-tpot2misp.sh)
-            TESTE(test_elasticsearch_connection.py)
-            TESTM(test_misp_connection.py)
-        end
-
-        subgraph Configuração [config/]
-            CONF(settings.py)
-        end
-
-        MAIN(main.py)
-    end
-
-    subgraph Sistemas Externos
-        TPOT[(T-Pot Platform)]
-        MISP[(MISP Instance)]
-    end
-
-    TPOT -- Eventos --> EC
-    TPOT -- Eventos --> HC
-
-    EC -- Dados Coletados --> MAIN
-    HC -- Dados Coletados --> MAIN
-
-    MAIN -- Dados para Processar --> EP
-    MAIN -- Dados para Processar --> MP
-
-    EP -- Consulta --> TI
-    EP -- Resultados Enriquecidos --> MP
-
-    MP -- Cria/Atualiza Evento --> MISP
-
-    MAIN -- Usa --> LOG
-    MAIN -- Usa --> MET
-    MAIN -- Usa --> ERR
-    MAIN -- Usa --> VAL
-    MAIN -- Usa --> CONF
-    MAIN -- Usa --> ES
-
-    EC -- Usa --> LOG
-    HC -- Usa --> LOG
-    EP -- Usa --> LOG
-    MP -- Usa --> LOG
-    EC -- Usa --> ES
-
-    EC -- Usa --> ERR
-    HC -- Usa --> ERR
-    EP -- Usa --> ERR
-    MP -- Usa --> ERR
-
-    EC -- Usa --> MET
-    HC -- Usa --> MET
-    EP -- Usa --> MET
-    MP -- Usa --> MET
-    
-    TESTE -- Testa Conexão --> TPOT
-    TESTM -- Testa Conexão --> MISP
-    AS -- Simula Ataques --> TPOT
-    START -- Inicia --> MAIN
+---
+config:
+  look: handDrawn
+  theme: redux
+  layout: fixed
+---
+flowchart LR
+ subgraph Collectors["Collectors"]
+        Elastic["Elastic Collector"]
+        HPFeeds["HPFeeds Collector"]
+  end
+ subgraph Processors["Processors"]
+        Enrich["Enrichment"]
+        MISPProc["MISP Processor"]
+  end
+ subgraph TPOT2MISP["TPOT2MISP Application"]
+        Collectors
+        MainProc["Main Processor"]
+        Processors
+  end
+    TPOT(("T-POT/Elastic")) --> Elastic & HPFeeds
+    Elastic --> MainProc
+    HPFeeds --> MainProc
+    MainProc --> Enrich
+    Enrich --> MISPProc
+    MISPProc --> MISPInstance[("MISP Instance")]
+     Elastic:::collector
+     HPFeeds:::collector
+     Enrich:::enrichment
+     MISPProc:::mispProcessor
+     MainProc:::main
+     TPOT:::external
+     MISPInstance:::external
+    classDef external fill:#f8e8ff,stroke:#8a56ac,stroke-width:1px,color:#000
+    classDef collector fill:#e0f7fa,stroke:#00796b,stroke-width:1px,color:#000
+    classDef main fill:#c8e6c9,stroke:#388e3c,stroke-width:1px,color:#000
+    classDef enrichment fill:#e3f2fd,stroke:#1565c0,stroke-width:1px,color:#000
+    classDef mispProcessor fill:#ffe0b2,stroke:#d84315,stroke-width:1px,color:#000
 ```
 
-### Estrutura do Projeto
+### Project Structure
 
 ```
 tpot2misp/
-├── collectors/               # Módulos de coleta de dados
-│   ├── elastic_collector.py  # Coleta em modo batch via Elasticsearch
-│   └── hpfeeds_collector.py  # Coleta em tempo real via HPFEEDS
-├── processors/               # Módulos de processamento de dados
-│   ├── misp_processor.py     # Lógica de integração com MISP
-│   └── enrichment_processor.py # Funcionalidade de enriquecimento de IoC
-├── utils/                    # Módulos utilitários
-│   ├── elasticsearch_client.py # Cliente customizado para Elasticsearch do T-Pot
-│   ├── error_handling.py     # Tratamento de erros centralizado
-│   ├── logging.py            # Logging estruturado
-│   ├── metrics.py            # Métricas do Prometheus
-│   └── validators.py         # Utilitários de validação de IP
-├── config/                   # Arquivos de configuração
+├── collectors/               # Data collection modules
+│   ├── elastic_collector.py  # Batch mode collection via Elasticsearch
+│   └── hpfeeds_collector.py  # Real-time collection via HPFEEDS
+├── processors/               # Data processing modules
+│   ├── misp_processor.py     # MISP integration logic
+│   └── enrichment_processor.py # IoC enrichment functionality
+├── utils/                    # Utility modules
+│   ├── elasticsearch_client.py # Custom client for T-Pot's Elasticsearch
+│   ├── error_handling.py     # Centralized error handling
+│   ├── logging.py            # Structured logging
+│   ├── metrics.py            # Prometheus metrics
+│   └── validators.py         # IP validation utilities
+├── config/                   # Configuration files
 │   ├── __init__.py
-│   └── settings.py           # Configurações carregadas do ambiente
-├── docker/                   # Arquivos relacionados ao Docker
-│   └── Dockerfile            # Instruções para criar a imagem Docker
-├── docs/                     # Documentação
-│   └── project.md            # Documentação detalhada do projeto
-├── scripts/                  # Scripts utilitários
-│   ├── attack_simulator_scapy.py       # Simulador de ataques para testes
-│   ├── start-tpot2misp.sh              # Script para iniciar o container Docker
-│   ├── test_elasticsearch_connection.py # Teste de conexão com Elasticsearch
-│   └── test_misp_connection.py         # Teste de conexão com MISP
-├── docker-compose.yml        # Configuração do Docker Compose
-├── .env                      # Configuração de variáveis de ambiente
-└── main.py                   # Ponto de entrada da aplicação
+│   └── settings.py           # Settings loaded from the environment
+├── docker/                   # Docker-related files
+│   └── Dockerfile            # Instructions to build the Docker image
+├── docs/                     # Documentation
+│   └── project.md            # Detailed project documentation
+├── scripts/                  # Utility scripts
+│   ├── attack_simulator_scapy.py       # Attack simulator for testing
+│   ├── start-tpot2misp.sh              # Script to start the Docker container
+│   ├── test_elasticsearch_connection.py # Elasticsearch connection test
+│   └── test_misp_connection.py         # MISP connection test
+├── docker-compose.yml        # Docker Compose configuration
+├── .env                      # Environment variable configuration
+└── main.py                   # Application entry point
 ```
 
-### Princípios de Design
+### Design Principles
 
-1. **Separação de Responsabilidades**: Cada componente tem uma função específica
-2. **Interfaces Claras**: Componentes se comunicam por interfaces padronizadas
-3. **Configurabilidade**: Comportamento modificável via configuração
-4. **Observabilidade**: Logs estruturados e métricas
-5. **Resiliência**: Tratamento de erros e recuperação de falhas
+1. **Separation of Responsibilities**: Each component has a specific function
+2. **Clear Interfaces**: Components communicate through standardized interfaces
+3. **Configurability**: Behavior modifiable via configuration
+4. **Observability**: Structured logs and metrics
+5. **Resilience**: Error handling and fault recovery
 
 ---
 
-## 🔄 Modos de Operação
+## 🔄 Operation Modes
 
-### Modo Batch
+### Batch Mode
 
-- Processa eventos do T-Pot via Elasticsearch (`collectors/elastic_collector.py`)
-- Ideal para execução agendada (cron)
-- Baixo consumo de recursos
+- Processes T-Pot events via Elasticsearch (`collectors/elastic_collector.py`)
+- Ideal for scheduled execution (cron)
+- Low resource consumption
 
-**Configuração típica:**
+**Typical configuration:**
 ```env
 COLLECTION_MODE=batch
 ELASTICSEARCH_URL=http://localhost:9200
@@ -212,13 +166,13 @@ TPOT_HONEYPOTS=cowrie,dionaea
 LOOKBACK_DAYS=1
 ```
 
-### Modo Realtime
+### Realtime Mode
 
-- Conecta-se ao broker HPFEEDS do T-Pot (`collectors/hpfeeds_collector.py`)
-- Processa eventos em tempo real
-- Resposta quase instantânea a novos ataques
+- Connects to T-Pot's HPFEEDS broker (`collectors/hpfeeds_collector.py`)
+- Processes events in real-time
+- Near-instantaneous response to new attacks
 
-**Configuração típica:**
+**Typical configuration:**
 ```env
 COLLECTION_MODE=realtime
 HPFEEDS_HOST=localhost
@@ -230,183 +184,183 @@ HPFEEDS_CHANNELS=tpot.events
 
 ---
 
-## 🧩 Componentes Principais
+## 🧩 Main Components
 
-### Coletores de Eventos (`collectors/`)
+### Event Collectors (`collectors/`)
 
 #### ElasticCollector (`elastic_collector.py`)
-- Lê e analisa eventos do T-Pot via Elasticsearch
-- Suporta múltiplos tipos de honeypot
-- Usa o padrão Strategy para diferentes tipos de honeypot
-- Queries otimizadas para melhor performance
+- Reads and analyzes T-Pot events via Elasticsearch
+- Supports multiple honeypot types
+- Uses the Strategy pattern for different honeypot types
+- Optimized queries for better performance
 
 #### HPFeedsCollector (`hpfeeds_collector.py`)
-- Coleta em tempo real via HPFEEDS
-- Conexão persistente e reconexão automática
-- Processamento assíncrono de mensagens
+- Real-time collection via HPFEEDS
+- Persistent connection and automatic reconnection
+- Asynchronous message processing
 
-### Processadores (`processors/`)
+### Processors (`processors/`)
 
 #### EnrichmentProcessor (`enrichment_processor.py`)
-- Gerencia múltiplos provedores de enriquecimento
-- Processamento paralelo e cache
-- Avaliação de reputação e validade
+- Manages multiple enrichment providers
+- Parallel processing and caching
+- Reputation and validity assessment
 
-#### Provedores (dentro de `EnrichmentProcessor`)
-- **VirusTotalEnricher**: reputação global, estatísticas
-- **AbuseIPDBEnricher**: pontuação de abuso, histórico
-- **GreyNoiseEnricher**: scanners conhecidos, classificação
+#### Providers (within `EnrichmentProcessor`)
+- **VirusTotalEnricher**: global reputation, statistics
+- **AbuseIPDBEnricher**: abuse score, history
+- **GreyNoiseEnricher**: known scanners, classification
 
 #### MISPProcessor (`misp_processor.py`)
-- Criação estruturada de eventos no MISP
-- Correlação com eventos existentes
-- Adição de objetos e atributos padronizados
-- Suporte a taxonomias e tags
+- Structured event creation in MISP
+- Correlation with existing events
+- Addition of standardized objects and attributes
+- Support for taxonomies and tags
 
-### Utilidades (`utils/`)
+### Utilities (`utils/`)
 
 #### Logging (`logging.py`)
-- Logs estruturados em JSON ou texto
-- Níveis configuráveis e rotação automática de arquivos
+- Structured logs in JSON or text
+- Configurable levels and automatic file rotation
 
 #### Metrics (`metrics.py`)
-- Métricas Prometheus: eventos, erros, duração, etc.
-- Exposição via endpoint HTTP
+- Prometheus metrics: events, errors, duration, etc.
+- Exposure via HTTP endpoint
 
 #### Error Handling (`error_handling.py`)
-- Classes e funções para tratamento centralizado de erros
-- Garante resiliência e log detalhado de falhas
+- Classes and functions for centralized error handling
+- Ensures resilience and detailed logging of failures
 
 #### Validators (`validators.py`)
-- Funções para validar dados de entrada (ex: IPs)
+- Functions to validate input data (e.g., IPs)
 
 #### Validation Report (`validation_report.py`)
-- Geração de relatórios detalhados para validação por analistas
-- Suporte a formatos TXT e JSON
-- Rastreamento de atributos por tipo de honeypot
-- Contabilização de eventos MISP criados e atualizados
-- Estatísticas totais para facilitar a validação
+- Generation of detailed reports for analyst validation
+- Support for TXT and JSON formats
+- Attribute tracking by honeypot type
+- Accounting of created and updated MISP events
+- Total statistics for easy validation
 
-### Scripts Utilitários (`scripts/`)
+### Utility Scripts (`scripts/`)
 
-Os scripts utilitários fornecem ferramentas de diagnóstico, teste e inicialização do sistema:
+The utility scripts provide diagnostic, testing, and system initialization tools:
 
 #### `test_elasticsearch_connection.py`
-Script de diagnóstico que testa a conexão com o Elasticsearch do T-Pot:
-- Utiliza o cliente customizado (`elasticsearch_client.py`) 
-- Verifica autenticação, conexão e disponibilidade dos índices
-- Fornece mensagens detalhadas de erro para facilitar o troubleshooting
-- Implementado com tratamento específico para problemas comuns (cabeçalhos HTTP, SSL)
+Diagnostic script that tests the connection to T-Pot's Elasticsearch:
+- Uses the custom client (`elasticsearch_client.py`)
+- Checks authentication, connection, and index availability
+- Provides detailed error messages for easy troubleshooting
+- Implemented with specific handling for common issues (HTTP headers, SSL)
 
 #### `test_misp_connection.py`
-Script de diagnóstico que testa a comunicação com a instância MISP:
-- Verifica a configuração e autenticação com a API MISP
-- Testa operações básicas (obter versão, buscar eventos, atributos e taxonomias)
-- Compatível com diferentes versões da API PyMISP
-- Fornece orientações detalhadas para resolução de problemas
+Diagnostic script that tests communication with the MISP instance:
+- Checks configuration and authentication with the MISP API
+- Tests basic operations (get version, search events, attributes, and taxonomies)
+- Compatible with different versions of the PyMISP API
+- Provides detailed guidance for problem resolution
 
 #### `attack_simulator_scapy.py`
-Simulador de ataques para testar o pipeline de detecção:
-- Utiliza a biblioteca Scapy para gerar tráfego simulado
-- Permite testes controlados sem exposição a ameaças reais
-- Útil para validar a configuração do T-Pot e a integração com MISP
-- Ferramenta para testes de integração e validação do pipeline completo
+Attack simulator to test the detection pipeline:
+- Uses the Scapy library to generate simulated traffic
+- Allows controlled testing without exposure to real threats
+- Useful for validating T-Pot configuration and MISP integration
+- Tool for integration testing and full pipeline validation
 
 #### `start-tpot2misp.sh`
-Script de inicialização para o ambiente Docker:
-- Cria diretórios necessários para persistência de dados
-- Inicia os contêineres via docker-compose
-- Fornece instruções para monitoramento e gerenciamento do serviço
-- Simplifica o processo de implantação e manutenção
+Initialization script for the Docker environment:
+- Creates necessary directories for data persistence
+- Configures appropriate permissions
+- Starts the TPot2MISP application using `docker-compose up -d`
+- Provides feedback on the initialization status
 
-Estes scripts são componentes essenciais para diagnóstico, testes e operações do sistema, fornecendo ferramentas práticas para garantir o funcionamento adequado da integração T-Pot/MISP.
-
-### Ponto de Entrada (`main.py`)
-- Orquestra o fluxo da aplicação baseado no modo de operação
-- Inicializa os componentes necessários
-
----
-
-## ⚙️ Fluxo de Processamento
-
-1. **Inicialização** (`main.py`): 
-   - Carrega configurações (`settings.py`)
-   - Inicializa logger (`logging.py`), métricas (`metrics.py`)
-   - Inicializa processadores (`MISPProcessor`, `EnrichmentProcessor`)
-
-2. **Coleta de Eventos** (`main.py` -> `collectors/`): 
-   - Instancia o coletor apropriado baseado no `COLLECTION_MODE`
-   - **Batch**: `ElasticCollector` busca eventos no Elasticsearch
-   - **Realtime**: `HPFeedsCollector` conecta ao HPFEEDS e recebe eventos
-
-3. **Processamento de Indicadores** (`main.py` -> `processors/`):
-   - Para cada indicador coletado:
-     - **Validação** (`validators.py`): Verifica se o indicador é válido
-     - **Enriquecimento** (`EnrichmentProcessor`): Consulta provedores, utiliza cache
-     - **Criação/Atualização no MISP** (`MISPProcessor`): Verifica correlação, cria/atualiza evento
-
-4. **Registro e Métricas** (`utils/`): 
-   - Durante todo o processo, logs detalhados são gerados (`logging.py`)
-   - Métricas são atualizadas (`metrics.py`)
-
-5. **Tratamento de Erros** (`utils/error_handling.py`): 
-   - Erros em qualquer etapa são capturados, logados e gerenciados
+### Entry Point (`main.py`)
+The `main.py` is the heart of the application:
+- Orchestrates the application flow based on the operation mode
+- Initializes collectors, processors, and utilities
+- Manages the application lifecycle and signal handling
 
 ---
 
-## 🔎 Enriquecimento de Indicadores
+## ⚙️ Processing Flow
 
-- Gerenciado pelo `EnrichmentProcessor` (`processors/enrichment_processor.py`)
-- Verifica cache interno para evitar consultas repetidas
-- Consulta múltiplos provedores em paralelo
-- Agrega resultados e avalia validade
-- TTL dinâmico para cache (alto risco = TTL menor)
+1. **Initialization** (`main.py`): 
+   - Loads configurations (`settings.py`)
+   - Initializes logger (`logging.py`), metrics (`metrics.py`)
+   - Initializes processors (`MISPProcessor`, `EnrichmentProcessor`)
+
+2. **Event Collection** (`main.py` -> `collectors/`): 
+   - Instantiates the appropriate collector based on `COLLECTION_MODE`
+   - **Batch**: `ElasticCollector` fetches events from Elasticsearch
+   - **Realtime**: `HPFeedsCollector` connects to HPFEEDS and receives events
+
+3. **Indicator Processing** (`main.py` -> `processors/`):
+   - For each collected indicator:
+     - **Validation** (`validators.py`): Checks if the indicator is valid
+     - **Enrichment** (`EnrichmentProcessor`): Queries providers, uses cache
+     - **Creation/Update in MISP** (`MISPProcessor`): Checks correlation, creates/updates event
+
+4. **Logging and Metrics** (`utils/`): 
+   - Throughout the process, detailed logs are generated (`logging.py`)
+   - Metrics are updated (`metrics.py`)
+
+5. **Error Handling** (`utils/error_handling.py`): 
+   - Errors at any stage are captured, logged, and managed
 
 ---
 
-## 🔗 Correlação e Criação de Eventos
+## 🔎 Indicator Enrichment
 
-- Gerenciado pelo `MISPProcessor` (`processors/misp_processor.py`)
-- Busca eventos existentes no MISP para o mesmo tipo de honeypot e dia
-- Cria um único evento diário por tipo de honeypot
-- Adiciona atributos (IPs, etc.) e objetos MISP ao evento
-- Aplica tags baseadas nos resultados do enriquecimento e tipo de honeypot
-- Gerencia a publicação (automática ou manual) dos eventos
+- Managed by `EnrichmentProcessor` (`processors/enrichment_processor.py`)
+- Checks internal cache to avoid repeated queries
+- Queries multiple providers in parallel
+- Aggregates results and assesses validity
+- Dynamic TTL for cache (high risk = shorter TTL)
 
 ---
 
-## ⚙️ Configuração
+## 🔗 Correlation and Event Creation
 
-Toda configuração é feita via variáveis de ambiente, preferencialmente definidas em um arquivo `.env` na raiz do projeto:
+- Managed by `MISPProcessor` (`processors/misp_processor.py`)
+- Searches for existing events in MISP for the same honeypot type and day
+- Creates a single daily event per honeypot type
+- Adds attributes (IPs, etc.) and MISP objects to the event
+- Applies tags based on enrichment results and honeypot type
+- Manages event publication (automatic or manual)
+
+---
+
+## ⚙️ Configuration
+
+All configuration is done via environment variables, preferably defined in a `.env` file at the project root:
 
 ```env
-# Modo de Operação ('batch' ou 'realtime')
+# Operation Mode ('batch' or 'realtime')
 COLLECTION_MODE=batch
 
 # MISP
 MISP_URL=https://your-misp-instance
 MISP_KEY=your-misp-api-key
-MISP_VERIFY_SSL=false # Defina como true em produção com certificado válido
-AUTO_PUBLISH=false    # Publicar eventos automaticamente?
-PUBLISH_DELAY=3600    # Delay em segundos para auto-publicação (se AUTO_PUBLISH=true)
+MISP_VERIFY_SSL=false # Set to true in production with valid certificate
+AUTO_PUBLISH=false    # Automatically publish events?
+PUBLISH_DELAY=3600    # Delay in seconds for auto-publishing (if AUTO_PUBLISH=true)
 
 # Batch (Elasticsearch)
 ELASTICSEARCH_URL=http://localhost:9200
 ELASTICSEARCH_USER=elastic
 ELASTICSEARCH_PASSWORD=changeme
-TPOT_HONEYPOTS=cowrie,dionaea # Lista de honeypots a processar
-LOOKBACK_DAYS=1             # Quantos dias para trás buscar eventos
+TPOT_HONEYPOTS=cowrie,dionaea # List of honeypots to process
+LOOKBACK_DAYS=1             # How many days back to fetch events
 
 # Realtime (HPFEEDS)
 HPFEEDS_HOST=localhost
 HPFEEDS_PORT=10000
 HPFEEDS_IDENT=tpot
 HPFEEDS_SECRET=your-secret-key
-HPFEEDS_CHANNELS=tpot.events # Canais HPFEEDS para assinar
+HPFEEDS_CHANNELS=tpot.events # HPFEEDS channels to subscribe to
 
-# Enriquecimento
+# Enrichment
 ENRICHMENT_ENABLED=true
-ENRICHMENT_CACHE_DURATION=86400 # Duração do cache em segundos (1 dia)
+ENRICHMENT_CACHE_DURATION=86400 # Cache duration in seconds (1 day)
 
 VIRUSTOTAL_ENABLED=true
 VIRUSTOTAL_API_KEY=your-vt-key
@@ -420,47 +374,47 @@ GREYNOISE_API_KEY=your-greynoise-key
 # Logs
 LOG_LEVEL=INFO # DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_FILE_ENABLED=true
-LOG_FILE_PATH=logs/tpot2misp.log # Caminho relativo à raiz do projeto
-LOG_FORMAT=json # 'json' ou 'text'
+LOG_FILE_PATH=logs/tpot2misp.log # Path relative to project root
+LOG_FORMAT=json # 'json' or 'text'
 
-# Métricas (Prometheus)
+# Metrics (Prometheus)
 PROMETHEUS_ENABLED=true
 PROMETHEUS_PORT=9431
 ```
 
 ---
 
-## 📋 Casos de Uso
+## 📋 Use Cases
 
-### Execução em Batch
+### Batch Execution
 
 ```bash
-# Agendar via cron
+# Schedule via cron
 0 * * * * cd /path/to/tpot2misp && python main.py
 ```
 
-### Execução em Tempo Real
+### Realtime Execution
 
 ```bash
 python main.py
 ```
 
-### Integração com SOC
-- Métricas Prometheus para Grafana
-- Logs para Splunk/Elasticsearch
+### SOC Integration
+- Prometheus metrics for Grafana
+- Logs for Splunk/Elasticsearch
 
 ---
 
-## 📊 Monitoramento e Diagnóstico
+## 📊 Monitoring and Diagnostics
 
-### Logs Estruturados
+### Structured Logs
 
 ```json
 {
   "timestamp": "2025-04-21T10:00:00Z",
   "level": "INFO",
   "logger": "tpot2misp",
-  "message": "Coletados 50 eventos no modo batch",
+  "message": "Collected 50 events in batch mode",
   "events": {
     "total": 50,
     "by_honeypot": {
@@ -471,53 +425,53 @@ python main.py
 }
 ```
 
-### Métricas Prometheus
+### Prometheus Metrics
 
-Disponíveis em `http://<host>:<PROMETHEUS_PORT>/metrics` se `PROMETHEUS_ENABLED=true`.
+Available at `http://<host>:<PROMETHEUS_PORT>/metrics` if `PROMETHEUS_ENABLED=true`.
 
 ```
-# HELP tpot2misp_events_processed_total Total de eventos processados
+# HELP tpot2misp_events_processed_total Total events processed
 # TYPE tpot2misp_events_processed_total counter
 tpot2misp_events_processed_total{mode="batch", honeypot="cowrie"} 150
 
-# HELP tpot2misp_indicators_enriched_total Total de indicadores enriquecidos
+# HELP tpot2misp_indicators_enriched_total Total indicators enriched
 # TYPE tpot2misp_indicators_enriched_total counter
 tpot2misp_indicators_enriched_total{provider="virustotal"} 120
 
-# HELP tpot2misp_enrichment_cache_hits_total Total de acertos no cache de enriquecimento
+# HELP tpot2misp_enrichment_cache_hits_total Total enrichment cache hits
 # TYPE tpot2misp_enrichment_cache_hits_total counter
 tpot2misp_enrichment_cache_hits_total{provider="abuseipdb"} 85
 
-# HELP tpot2misp_indicator_processing_duration_seconds Duração do processamento de indicadores
+# HELP tpot2misp_indicator_processing_duration_seconds Indicator processing duration
 # TYPE tpot2misp_indicator_processing_duration_seconds histogram
-# ... (buckets e sumário)
+# ... (buckets and summary)
 
-# HELP tpot2misp_hpfeeds_connection_status Status da conexão HPFEEDS (1=conectado, 0=desconectado)
+# HELP tpot2misp_hpfeeds_connection_status HPFEEDS connection status (1=connected, 0=disconnected)
 # TYPE tpot2misp_hpfeeds_connection_status gauge
 tpot2misp_hpfeeds_connection_status 1
 ```
 
 ---
 
-## 🛠️ Desenvolvimento e Extensão
+## 🛠️ Development and Extension
 
-### Adicionando Novos Honeypots (Modo Batch)
+### Adding New Honeypots (Batch Mode)
 
-Para adicionar suporte a um novo honeypot no modo batch:
+To add support for a new honeypot in batch mode:
 
-1. Crie uma nova classe de estratégia em `collectors/elastic_collector.py` herdando de `HoneypotStrategy`:
+1. Create a new strategy class in `collectors/elastic_collector.py` inheriting from `HoneypotStrategy`:
 ```python
-from .base_strategy import HoneypotStrategy # Exemplo
+from .base_strategy import HoneypotStrategy # Example
 
 class NewHoneypotStrategy(HoneypotStrategy):
     def get_query(self, start_time: str, end_time: str) -> Dict[str, Any]:
-        # Implemente a query Elasticsearch específica para este honeypot
+        # Implement the Elasticsearch query specific to this honeypot
         return {
             "query": {
                 "bool": {
                     "filter": [
-                        {"term": {"event.kind": "event"}}, # Ajuste conforme necessário
-                        {"term": {"honeypot.type": "new_honeypot_type"}}, # Ajuste conforme necessário
+                        {"term": {"event.kind": "event"}}, # Adjust as needed
+                        {"term": {"honeypot.type": "new_honeypot_type"}}, # Adjust as needed
                         {"range": {"@timestamp": {"gte": start_time, "lt": end_time}}}
                     ]
                 }
@@ -525,7 +479,7 @@ class NewHoneypotStrategy(HoneypotStrategy):
         }
 
     def parse_event(self, hit: Dict[str, Any]) -> Optional[Dict[str, Any]]]:
-        # Implemente a lógica para extrair dados relevantes do hit do Elasticsearch
+        # Implement the logic to extract relevant data from the Elasticsearch hit
         source_ip = hit.get("_source", {}).get("source", {}).get("ip")
         if not source_ip:
             return None
@@ -533,76 +487,76 @@ class NewHoneypotStrategy(HoneypotStrategy):
             "source_ip": source_ip,
             "timestamp": hit.get("_source", {}).get("@timestamp"),
             "honeypot_type": "new_honeypot_type",
-            # Adicione outros campos relevantes
+            # Add other relevant fields
         }
 ```
 
-2. Adicione a estratégia ao dicionário `_strategies` no construtor de `ElasticCollector`:
+2. Add the strategy to the `_strategies` dictionary in the `ElasticCollector` constructor:
 ```python
 self._strategies = {
     'cowrie': CowrieStrategy(self._es),
     'dionaea': DionaeaStrategy(self._es),
-    'new_honeypot_type': NewHonepotStrategy(self._es) # Adicione aqui
+    'new_honeypot_type': NewHonepotStrategy(self._es) # Add here
 }
 ```
 
-3. Atualize a configuração `TPOT_HONEYPOTS` no seu arquivo `.env`:
+3. Update the `TPOT_HONEYPOTS` configuration in your `.env` file:
 ```env
 TPOT_HONEYPOTS=cowrie,dionaea,new_honeypot_type
 ```
 
-### Adicionando Novos Provedores de Enriquecimento
+### Adding New Enrichment Providers
 
-Para adicionar um novo provedor de enriquecimento:
+To add a new enrichment provider:
 
-1. Crie uma nova classe de enricher herdando de `BaseEnricher`:
+1. Create a new enricher class inheriting from `BaseEnricher`:
 ```python
-from .base_enricher import BaseEnricher # Exemplo
+from .base_enricher import BaseEnricher # Example
 
 class NewProviderEnricher(BaseEnricher):
     async def enrich(self, indicator: str) -> Dict[str, Any]:
-        # Implemente a lógica de chamada da API e parsing da resposta
+        # Implement the API call logic and response parsing
         api_key = self.settings.get("NEW_PROVIDER_API_KEY")
         if not api_key:
             # Log warning
             return {}
-        # ... lógica da API ...
+        # ... API logic ...
         return {"new_provider_data": "some_value"}
 ```
 
-2. Adicione as configurações necessárias em `config/settings.py` e no `.env.example`.
+2. Add the necessary configurations in `config/settings.py` and `.env.example`.
 
-3. Atualize o `EnrichmentProcessor` para instanciar e usar o novo enricher:
+3. Update the `EnrichmentProcessor` to instantiate and use the new enricher:
 ```python
-# Em EnrichmentProcessor.__init__
+# In EnrichmentProcessor.__init__
 if self.settings.NEW_PROVIDER_ENABLED:
     self.enrichers.append(NewProviderEnricher(self.settings, self.cache))
 ```
 
 ---
 
-## ❓ Perguntas Frequentes
+## ❓ Frequently Asked Questions
 
-### Por que usar Elasticsearch em vez de ler arquivos de log diretamente?
+### Why use Elasticsearch instead of reading log files directly?
 
-O T-Pot já instala e configura o Elasticsearch por padrão. Usar o Elasticsearch oferece várias vantagens:
+T-Pot already installs and configures Elasticsearch by default. Using Elasticsearch offers several advantages:
 
-1. **Performance**: Dados já indexados e otimizados para busca
-2. **Simplicidade**: Não precisa gerenciar arquivos de log
-3. **Flexibilidade**: Queries avançadas e filtros eficientes
-4. **Escalabilidade**: Melhor para grandes volumes de dados
+1. **Performance**: Data already indexed and optimized for search
+2. **Simplicity**: No need to manage log files
+3. **Flexibility**: Advanced queries and efficient filters
+4. **Scalability**: Better for large volumes of data
 
-### Como funciona a integração com o Elasticsearch do T-Pot?
+### How does the integration with T-Pot's Elasticsearch work?
 
-O T-Pot já configura o Elasticsearch e indexa todos os eventos dos honeypots. Nossa aplicação:
+T-Pot already configures Elasticsearch and indexes all honeypot events. Our application:
 
-1. Conecta-se ao Elasticsearch do T-Pot
-2. Usa queries específicas para cada tipo de honeypot
-3. Processa os eventos e os envia para o MISP
+1. Connects to T-Pot's Elasticsearch
+2. Uses specific queries for each honeypot type
+3. Processes the events and sends them to MISP
 
-### Posso usar o modo batch e realtime simultaneamente?
+### Can I use batch and realtime modes simultaneously?
 
-Não, a aplicação opera em um único modo por vez. Escolha o modo mais adequado para seu caso de uso:
+No, the application operates in a single mode at a time. Choose the mode that best suits your use case:
 
-- **Batch**: Ideal para execução periódica via cron
-- **Realtime**: Ideal para processamento contínuo e resposta rápida
+- **Batch**: Ideal for periodic execution via cron
+- **Realtime**: Ideal for continuous processing and quick response

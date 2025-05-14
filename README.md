@@ -1,6 +1,6 @@
 # T-Pot to MISP Integration
 
-[![pt-BR](https://img.shields.io/badge/lang-pt--BR-blue.svg)](README.pt-BR.md)
+[![pt-BR](https://img.shields.io/badge/lang-pt--BR-blue.svg)](readme.pt-br.md)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python Version">
